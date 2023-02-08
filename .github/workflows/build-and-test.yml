@@ -68,7 +68,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: src\Tests\**\TestResults\**\coverage.cobertura.xml
           retention-days: 1
 
@@ -90,7 +90,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: artifacts/Tests/
           retention-days: 1
 
@@ -101,7 +101,7 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: artifacts/test-results
           
       - name: Display structure of downloaded files
@@ -118,7 +118,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: coverage-results
+          name: moryx-core-coverage-results
           path: Coverage/
           retention-days: 1
 
@@ -129,7 +129,7 @@ jobs:
       - name: Download coverage results
         uses: actions/download-artifact@v2
         with:
-          name: coverage-results
+          name: moryx-core-coverage-results
           path: artifacts/coverage-results
 
       - name: Configure AWS Credentials
@@ -140,7 +140,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage --delete
+        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage/moryx-core --delete
 
 
 
