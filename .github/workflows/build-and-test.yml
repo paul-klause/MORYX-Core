@@ -75,7 +75,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: src\Tests\**\TestResults\**\coverage.cobertura.xml
           retention-days: 1
 
@@ -97,7 +97,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: artifacts/Tests/
           retention-days: 1
 
@@ -108,27 +108,49 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v2
         with:
-          name: test-results
-          path: artifacts/test-results
+          name: moryx-core-test-results
+          path: artifacts/moryx-core-test-results
           
       - name: Display structure of downloaded files
         run: ls -R
-        working-directory: artifacts/test-results
+        working-directory: artifacts/moryx-core-test-results
           
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.1.12
         with:
-          reports: artifacts/test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/test-results/*.Cobertura.xml
+          reports: artifacts/test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/moryx-core-test-results/*.Cobertura.xml
           targetdir: Coverage
           reporttypes: Html
           
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: coverage-results
+          name: moryx-core-coverage-results
           path: Coverage/
- 
           retention-days: 1
+          
+          
+  Release-Website:
+    needs: [ReportGenerator]
+    runs-on: ubuntu-latest
+    steps:        
+      - name: Download coverage results
+        uses: actions/download-artifact@v2
+        with:
+          name: moryx-core-coverage-results
+          path: artifacts/coverage-results
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage/moryx-core --delete
+
+
 
   Documentation:
     needs: [Build]
