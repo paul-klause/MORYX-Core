@@ -7,6 +7,7 @@ on:
       - dev
       - future
       - feature/codecoverage-ci-laura
+      - feature/publish-to-aws
     tags:
       - v[0-9]+.[0-9]+.[0-9]+ # Matches all semantic versioning tags with major, minor, patch
   pull_request:
@@ -139,10 +140,10 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-southeast-1
+          aws-region: eu-central-1
 
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync artifacts/coverage-results s3://BUCKET_NAME --delete
+        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage --delete
 
 
 
