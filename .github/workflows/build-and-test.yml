@@ -22,30 +22,30 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
-  Build:
-    runs-on: windows-2019
-    steps:
-      - uses: actions/checkout@v2
+  # Build:
+  #   runs-on: windows-2019
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+  #     - name: Setup .NET SDK
+  #       uses: actions/setup-dotnet@v1
+  #       with:
+  #         dotnet-version: ${{ env.dotnet_sdk_version }}
 
-      - name: Build
-        shell: pwsh
-        run: ./Build.ps1 -Build -Pack
+  #     - name: Build
+  #       shell: pwsh
+  #       run: ./Build.ps1 -Build -Pack
 
-      - name: Upload package artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: packages
-          path: artifacts/Packages/
-          retention-days: 1
+  #     - name: Upload package artifacts
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: packages
+  #         path: artifacts/Packages/
+  #         retention-days: 1
 
 
   UnitTests:
-    needs: [Build]
+    # needs: [Build]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -54,6 +54,11 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.dotnet_sdk_version }}
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
           
       - name: Execute dotnet info
         run: dotnet --info
@@ -75,7 +80,7 @@ jobs:
           retention-days: 1
 
   IntegrationTests:
-    needs: [Build]
+    # needs: [Build]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -125,64 +130,64 @@ jobs:
  
           retention-days: 1
 
-  Documentation:
-    needs: [Build]
-    runs-on: windows-2019
-    steps:
-      - uses: actions/checkout@v2
+  # Documentation:
+  #   needs: [Build]
+  #   runs-on: windows-2019
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Generate docFx
-        shell: pwsh
-        run: ./Build.ps1 -GenerateDocs
+  #     - name: Generate docFx
+  #       shell: pwsh
+  #       run: ./Build.ps1 -GenerateDocs
 
-      - name: Upload documentation results
-        uses: actions/upload-artifact@v2
-        with:
-          name: documentation
-          path: artifacts/Documentation/
-          retention-days: 1
+  #     - name: Upload documentation results
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: documentation
+  #         path: artifacts/Documentation/
+  #         retention-days: 1
 
-  Publish:
-    needs: [Build, UnitTests]
-    if: ${{ github.event_name == 'push' }}
-    runs-on: windows-2019
-    steps:
-      - uses: actions/checkout@v2
+  # Publish:
+  #   needs: [Build, UnitTests]
+  #   if: ${{ github.event_name == 'push' }}
+  #   runs-on: windows-2019
+  #   steps:
+  #     - uses: actions/checkout@v2
       
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ env.dotnet_sdk_version }}
+  #     - name: Setup .NET SDK
+  #       uses: actions/setup-dotnet@v1
+  #       with:
+  #         dotnet-version: ${{ env.dotnet_sdk_version }}
   
-      - name: Download package artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: packages
-          path: artifacts/Packages/
+  #     - name: Download package artifacts
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: packages
+  #         path: artifacts/Packages/
 
-      - name: Publish on MyGet-CI
-        if: ${{ github.ref == 'refs/heads/dev' }} # dev branche is published to myget moryx
-        shell: pwsh
-        env:
-          MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
-          MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx/api/v2/package"
-          MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx/api/v3/index.json"
-        run: ./Build.ps1 -Publish
+  #     - name: Publish on MyGet-CI
+  #       if: ${{ github.ref == 'refs/heads/dev' }} # dev branche is published to myget moryx
+  #       shell: pwsh
+  #       env:
+  #         MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
+  #         MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx/api/v2/package"
+  #         MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx/api/v3/index.json"
+  #       run: ./Build.ps1 -Publish
 
-      - name: Publish on MyGet-Future
-        if: ${{ github.ref == 'refs/heads/future' }} # Future branch is published to myget moryx-future
-        shell: pwsh
-        env:
-          MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
-          MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx-future/api/v2/package"
-          MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx-future/api/v3/index.json"
-        run: ./Build.ps1 -Publish
+  #     - name: Publish on MyGet-Future
+  #       if: ${{ github.ref == 'refs/heads/future' }} # Future branch is published to myget moryx-future
+  #       shell: pwsh
+  #       env:
+  #         MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
+  #         MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx-future/api/v2/package"
+  #         MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx-future/api/v3/index.json"
+  #       run: ./Build.ps1 -Publish
 
-      - name: Publish on NuGet
-        if: ${{ startsWith(github.ref, 'refs/tags/v') }} # Version Tags are published to nuget
-        shell: pwsh
-        env:
-          MORYX_NUGET_APIKEY: ${{secrets.NUGET_TOKEN}}
-          MORYX_PACKAGE_TARGET: "https://api.nuget.org/v3/index.json"
-          MORYX_PACKAGE_TARGET_V3: "https://api.nuget.org/v3/index.json"
-        run: ./Build.ps1 -Publish
+  #     - name: Publish on NuGet
+  #       if: ${{ startsWith(github.ref, 'refs/tags/v') }} # Version Tags are published to nuget
+  #       shell: pwsh
+  #       env:
+  #         MORYX_NUGET_APIKEY: ${{secrets.NUGET_TOKEN}}
+  #         MORYX_PACKAGE_TARGET: "https://api.nuget.org/v3/index.json"
+  #         MORYX_PACKAGE_TARGET_V3: "https://api.nuget.org/v3/index.json"
+  #       run: ./Build.ps1 -Publish
