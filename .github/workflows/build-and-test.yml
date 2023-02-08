@@ -18,7 +18,7 @@ env:
   MORYX_OPTIMIZE_CODE: "false"
   MORYX_BUILD_CONFIG: "Release"
   MORYX_BUILDNUMBER: ${{github.run_number}}
-  dotnet_sdk_version: '7.x'
+  dotnet_sdk_version: '6.x'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
@@ -62,8 +62,7 @@ jobs:
         run: dotnet build
 
       - name: Execute dotnet test (needs coverlet.collector nuget)
-        run: dotnet test 
-        # --collect:"XPlat Code Coverage" --no-build
+        run: dotnet test --collect:"XPlat Code Coverage"
 
       - name: Upload test results
         uses: actions/upload-artifact@v2
