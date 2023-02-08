@@ -62,7 +62,8 @@ jobs:
         run: dotnet build
 
       - name: Execute dotnet test (needs coverlet.collector nuget)
-        run: dotnet test --collect:"XPlat Code Coverage" --no-build
+        run: dotnet test 
+        # --collect:"XPlat Code Coverage" --no-build
 
       - name: Upload test results
         uses: actions/upload-artifact@v2
