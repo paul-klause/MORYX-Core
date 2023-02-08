@@ -118,7 +118,7 @@ jobs:
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.1.12
         with:
-          reports: artifacts/test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/moryx-core-test-results/*.Cobertura.xml
+          reports: artifacts/moryx-core-test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/moryx-core-test-results/*.Cobertura.xml
           targetdir: Coverage
           reporttypes: Html
           
