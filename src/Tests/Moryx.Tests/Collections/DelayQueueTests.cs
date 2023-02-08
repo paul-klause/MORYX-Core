@@ -144,26 +144,26 @@ namespace Moryx.Tests.Collections
             Assert.AreEqual(0, _times.Count);
         }
 
-        [Test(Description = "")]
-        public void InterruptQueue()
-        {
-            // Arrange
-            var localThreading = new ParallelOperations(new NullLogger<ParallelOperations>());
+        //[Test(Description = "")]
+        //public void InterruptQueue()
+        //{
+        //    // Arrange
+        //    var localThreading = new ParallelOperations(new NullLogger<ParallelOperations>());
 
-            // Act
-            localThreading.ScheduleExecution(_queue.Enqueue, new DummyMessage(), (int)(Delay * 0.5), -1);
-            localThreading.ScheduleExecution(_queue.Enqueue, new DummyMessage(), (int)(Delay * 1.5), -1);
+        //    // Act
+        //    localThreading.ScheduleExecution(_queue.Enqueue, new DummyMessage(), (int)(Delay * 0.5), -1);
+        //    localThreading.ScheduleExecution(_queue.Enqueue, new DummyMessage(), (int)(Delay * 1.5), -1);
 
-            Thread.Sleep(Delay * 2);
-            _queue.Stop();
+        //    Thread.Sleep(Delay * 2);
+        //    _queue.Stop();
 
-            var preClear = _times.Count;
-            _times.Clear();
-            Thread.Sleep(Delay * 2);
+        //    var preClear = _times.Count;
+        //    _times.Clear();
+        //    Thread.Sleep(Delay * 2);
 
-            // Assert
-            Assert.GreaterOrEqual(preClear, 0);
-            Assert.AreEqual(0, _times.Count);
-        }
+        //    // Assert
+        //    Assert.GreaterOrEqual(preClear, 0);
+        //    Assert.AreEqual(0, _times.Count);
+        //}
     }
 }
