@@ -36,11 +36,6 @@ jobs:
       - name: Build
         shell: pwsh
         run: ./Build.ps1 -Build -Pack
-      
-      
-      - name: Extract branch name
-        shell: bash
-        run: echo "CURRENT_BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v2
@@ -138,6 +133,10 @@ jobs:
         with:
           name: ${{env.REPOSITORY_NAME}}-coverage-results
           path: artifacts/coverage-results
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "CURRENT_BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
