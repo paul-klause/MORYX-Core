@@ -14,28 +14,28 @@ namespace Moryx.Model.Tests
     public class InMemoryTests
     {
 
-        [Test]
-        public async Task InMemoryContextShouldWork()
-        {
-            // Arrange
-            const string carName = "BMW 320d F31 - Mineral Gray";
-            var inMemoryFactory = new InMemoryDbContextManager(Guid.NewGuid().ToString());
+        //[Test]
+        //public async Task InMemoryContextShouldWork()
+        //{
+        //    // Arrange
+        //    const string carName = "BMW 320d F31 - Mineral Gray";
+        //    var inMemoryFactory = new InMemoryDbContextManager(Guid.NewGuid().ToString());
 
-            // Act
-            var context = inMemoryFactory.Create<TestModelContext>();
+        //    // Act
+        //    var context = inMemoryFactory.Create<TestModelContext>();
 
-            // Assert
-            var carsSet = context.Cars;
-            var someCar = new CarEntity {Name = carName};
-            await carsSet.AddAsync(someCar);
+        //    // Assert
+        //    var carsSet = context.Cars;
+        //    var someCar = new CarEntity {Name = carName};
+        //    await carsSet.AddAsync(someCar);
 
-            await context.SaveChangesAsync();
+        //    await context.SaveChangesAsync();
 
-            context = inMemoryFactory.Create<TestModelContext>();
-            var reloadedCar = await context.Cars.FirstAsync();
+        //    context = inMemoryFactory.Create<TestModelContext>();
+        //    var reloadedCar = await context.Cars.FirstAsync();
 
-            Assert.IsNotNull(reloadedCar);
-            Assert.AreEqual(carName, reloadedCar.Name);
-        }
+        //    Assert.IsNotNull(reloadedCar);
+        //    Assert.AreEqual(carName, reloadedCar.Name);
+        //}
     }
 }

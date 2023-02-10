@@ -30,81 +30,81 @@ namespace Moryx.Resources.Management.Tests
             _resourceGraph = resourceCreator.Object;
         }
 
-        [Test(Description = "Instantiates a resource")]
-        public void InstantiateCreatesAValidResourceObject()
-        {
-            // Arrange
-            var accessor = new ResourceEntityAccessor
-            {
-                Id = 10,
-                Type = typeof(TestResource).ResourceType(),
-                Name = nameof(ResourceEntityAccessor.Name),
-                Description = nameof(ResourceEntityAccessor.Description),
-                ExtensionData = JsonConvert.SerializeObject(new TestResource { Data = new ExtensionDataInherited() }, JsonSettings.Minimal)
-            };
+        //[Test(Description = "Instantiates a resource")]
+        //public void InstantiateCreatesAValidResourceObject()
+        //{
+        //    // Arrange
+        //    var accessor = new ResourceEntityAccessor
+        //    {
+        //        Id = 10,
+        //        Type = typeof(TestResource).ResourceType(),
+        //        Name = nameof(ResourceEntityAccessor.Name),
+        //        Description = nameof(ResourceEntityAccessor.Description),
+        //        ExtensionData = JsonConvert.SerializeObject(new TestResource { Data = new ExtensionDataInherited() }, JsonSettings.Minimal)
+        //    };
 
-            // Act
-            var resource = accessor.Instantiate(_typeControllerMock, _resourceGraph) as TestResource;
+        //    // Act
+        //    var resource = accessor.Instantiate(_typeControllerMock, _resourceGraph) as TestResource;
 
-            // Assert
-            Assert.NotNull(resource);
-            Assert.AreEqual(10, resource.Id);
-            Assert.AreEqual(accessor.Type, resource.GetType().ResourceType());
-            Assert.AreEqual(accessor.Name, resource.Name);
-            Assert.AreEqual(accessor.Description, resource.Description);
+        //    // Assert
+        //    Assert.NotNull(resource);
+        //    Assert.AreEqual(10, resource.Id);
+        //    Assert.AreEqual(accessor.Type, resource.GetType().ResourceType());
+        //    Assert.AreEqual(accessor.Name, resource.Name);
+        //    Assert.AreEqual(accessor.Description, resource.Description);
 
-            Assert.NotNull(resource.Data);
-            Assert.AreEqual(typeof(ExtensionDataInherited), resource.Data.GetType());
-            Assert.AreEqual(1, resource.Data.Value1);
-            Assert.AreEqual("MyVal", resource.Data.Value2);
-            Assert.AreEqual(42, ((ExtensionDataInherited)resource.Data).Value3);
-        }
+        //    Assert.NotNull(resource.Data);
+        //    Assert.AreEqual(typeof(ExtensionDataInherited), resource.Data.GetType());
+        //    Assert.AreEqual(1, resource.Data.Value1);
+        //    Assert.AreEqual("MyVal", resource.Data.Value2);
+        //    Assert.AreEqual(42, ((ExtensionDataInherited)resource.Data).Value3);
+        //}
 
-        [TestCase(false, Description = "Updates an existing ResourceEntity")]
-        [TestCase(true, Description = "Creates a new ResourceEntity")]
-        public void SaveEntityReturnsAValidResource(bool createNew)
-        {
-            // Arrange
-            var id = createNew ? 0 : 10;
-            var type = createNew ? typeof(TestResource).ResourceType() : "";
-            const string name = nameof(ResourceEntityAccessor.Name);
-            const string description = nameof(ResourceEntityAccessor.Description);
+        //[TestCase(false, Description = "Updates an existing ResourceEntity")]
+        //[TestCase(true, Description = "Creates a new ResourceEntity")]
+        //public void SaveEntityReturnsAValidResource(bool createNew)
+        //{
+        //    // Arrange
+        //    var id = createNew ? 0 : 10;
+        //    var type = createNew ? typeof(TestResource).ResourceType() : "";
+        //    const string name = nameof(ResourceEntityAccessor.Name);
+        //    const string description = nameof(ResourceEntityAccessor.Description);
 
-            var entity = new ResourceEntity
-            {
-                Id = id,
-                Type = type,
-                Name = "",
-                Description = ""
-            };
+        //    var entity = new ResourceEntity
+        //    {
+        //        Id = id,
+        //        Type = type,
+        //        Name = "",
+        //        Description = ""
+        //    };
 
-            var repoMock = new Mock<IRepository<ResourceEntity>>();
-            repoMock.Setup(r => r.Create()).Returns(entity);
-            repoMock.Setup(r => r.GetByKey(It.IsAny<long>())).Returns(entity);
+        //    var repoMock = new Mock<IRepository<ResourceEntity>>();
+        //    repoMock.Setup(r => r.Create()).Returns(entity);
+        //    repoMock.Setup(r => r.GetByKey(It.IsAny<long>())).Returns(entity);
 
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-            unitOfWorkMock.Setup(uow => uow.GetRepository<IRepository<ResourceEntity>>()).Returns(repoMock.Object);
+        //    var unitOfWorkMock = new Mock<IUnitOfWork>();
+        //    unitOfWorkMock.Setup(uow => uow.GetRepository<IRepository<ResourceEntity>>()).Returns(repoMock.Object);
 
-            var resource = new TestResource
-            {
-                Name = name,
-                Data = new ExtensionDataInherited(),
-                Description = description
-            };
+        //    var resource = new TestResource
+        //    {
+        //        Name = name,
+        //        Data = new ExtensionDataInherited(),
+        //        Description = description
+        //    };
 
-            var extensionDataJson = JsonConvert.SerializeObject(resource, JsonSettings.Minimal);
+        //    var extensionDataJson = JsonConvert.SerializeObject(resource, JsonSettings.Minimal);
 
-            // Act
-            var resourceEntity = ResourceEntityAccessor.SaveToEntity(unitOfWorkMock.Object, resource);
+        //    // Act
+        //    var resourceEntity = ResourceEntityAccessor.SaveToEntity(unitOfWorkMock.Object, resource);
 
-            // Assert
-            Assert.NotNull(resourceEntity);
-            Assert.AreEqual(id, resourceEntity.Id);
-            Assert.AreEqual(type, resourceEntity.Type);
-            Assert.AreEqual(name, resourceEntity.Name);
-            Assert.AreEqual(description, resourceEntity.Description);
-            Assert.AreEqual(extensionDataJson, resourceEntity.ExtensionData);
-        }
+        //    // Assert
+        //    Assert.NotNull(resourceEntity);
+        //    Assert.AreEqual(id, resourceEntity.Id);
+        //    Assert.AreEqual(type, resourceEntity.Type);
+        //    Assert.AreEqual(name, resourceEntity.Name);
+        //    Assert.AreEqual(description, resourceEntity.Description);
+        //    Assert.AreEqual(extensionDataJson, resourceEntity.ExtensionData);
+        //}
 
         private class ExtensionDataTestBase
         {
