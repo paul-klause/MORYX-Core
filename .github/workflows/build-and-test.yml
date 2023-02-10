@@ -6,8 +6,6 @@ on:
     branches: 
       - dev
       - future
-      - feature/codecoverage-ci
-      - junk/with-fewer-tests
     tags:
       - v[0-9]+.[0-9]+.[0-9]+ # Matches all semantic versioning tags with major, minor, patch
   pull_request:
@@ -21,6 +19,8 @@ env:
   MORYX_BUILDNUMBER: ${{github.run_number}}
   dotnet_sdk_version: '7.x'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+  CURRENT_BRANCH_NAME: ""
 
 jobs:
   Build:
@@ -36,6 +36,11 @@ jobs:
       - name: Build
         shell: pwsh
         run: ./Build.ps1 -Build -Pack
+      
+      
+      - name: Extract branch name
+        shell: bash
+        run: echo "CURRENT_BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v2
@@ -60,9 +65,6 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 6.x
-          
-      # - name: Execute dotnet info
-      #   run: dotnet --info
 
       - name: Execute dotnet restore
         run: dotnet restore
@@ -76,7 +78,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: moryx-core-test-results
+          name: ${{env.REPOSITORY_NAME}}-test-results
           path: src\Tests\**\TestResults\**\coverage.cobertura.xml
           retention-days: 1
 
@@ -98,7 +100,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: moryx-core-test-results
+          name: ${{env.REPOSITORY_NAME}}-test-results
           path: artifacts/Tests/
           retention-days: 1
 
@@ -109,24 +111,20 @@ jobs:
       - name: Download test results
         uses: actions/download-artifact@v2
         with:
-          name: moryx-core-test-results
-          path: artifacts/moryx-core-test-results
-          
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: artifacts/moryx-core-test-results
+          name: ${{env.REPOSITORY_NAME}}-test-results
+          path: artifacts/test-results
           
       - name: ReportGenerator
         uses: danielpalme/ReportGenerator-GitHub-Action@5.1.12
         with:
-          reports: artifacts/moryx-core-test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/moryx-core-test-results/*.Cobertura.xml
+          reports: artifacts/test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/test-results/*.Cobertura.xml
           targetdir: Coverage
           reporttypes: Html
           
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: moryx-core-coverage-results
+          name: ${{env.REPOSITORY_NAME}}-coverage-results
           path: Coverage/
           retention-days: 1
           
@@ -134,11 +132,11 @@ jobs:
   Release-Website:
     needs: [ReportGenerator]
     runs-on: ubuntu-latest
-    steps:        
+    steps:
       - name: Download coverage results
         uses: actions/download-artifact@v2
         with:
-          name: moryx-core-coverage-results
+          name: ${{env.REPOSITORY_NAME}}-coverage-results
           path: artifacts/coverage-results
 
       - name: Configure AWS Credentials
@@ -149,7 +147,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Deploy static site to S3 bucket
-        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage/moryx-core --delete
+        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage/${{env.REPOSITORY_NAME}}/${{env.CURRENT_BRANCH_NAME}} --delete
 
 
 
@@ -197,14 +195,14 @@ jobs:
           MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx/api/v3/index.json"
         run: ./Build.ps1 -Publish
 
-      - name: Publish on MyGet-Future
-        if: ${{ github.ref == 'refs/heads/future' }} # Future branch is published to myget moryx-future
-        shell: pwsh
-        env:
-          MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
-          MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx-future/api/v2/package"
-          MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx-future/api/v3/index.json"
-        run: ./Build.ps1 -Publish
+      #- name: Publish on MyGet-Future
+      #  if: ${{ github.ref == 'refs/heads/future' }} # Future branch is published to myget moryx-future
+      #  shell: pwsh
+      #  env:
+      #    MORYX_NUGET_APIKEY: ${{secrets.MYGET_TOKEN}}
+      #    MORYX_PACKAGE_TARGET: "https://www.myget.org/F/moryx-future/api/v2/package"
+      #    MORYX_PACKAGE_TARGET_V3: "https://www.myget.org/F/moryx-future/api/v3/index.json"
+      #  run: ./Build.ps1 -Publish
 
       - name: Publish on NuGet
         if: ${{ startsWith(github.ref, 'refs/tags/v') }} # Version Tags are published to nuget
