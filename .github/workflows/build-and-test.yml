@@ -6,6 +6,8 @@ on:
     branches: 
       - dev
       - future
+      - feature/codecoverage-ci
+      - junk/with-fewer-tests
     tags:
       - v[0-9]+.[0-9]+.[0-9]+ # Matches all semantic versioning tags with major, minor, patch
   pull_request:
@@ -42,31 +44,44 @@ jobs:
           path: artifacts/Packages/
           retention-days: 1
 
+
   UnitTests:
     needs: [Build]
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup .NET SDK
+      - name: Setup .NET SDK standard (7)
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.dotnet_sdk_version }}
 
-      - name: Execute Unit Tests
-        shell: pwsh
-        run: ./Build.ps1 -UnitTests
+      - name: Setup .NET SDK 6 for testing purposes
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
+          
+      # - name: Execute dotnet info
+      #   run: dotnet --info
+
+      - name: Execute dotnet restore
+        run: dotnet restore
+
+      - name: Execute dotnet build
+        run: dotnet build
+
+      - name: Execute dotnet test (needs coverlet.collector nuget)
+        run: dotnet test --collect:"XPlat Code Coverage"
 
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
-          path: artifacts/Tests/
+          name: moryx-core-test-results
+          path: src\Tests\**\TestResults\**\coverage.cobertura.xml
           retention-days: 1
 
   IntegrationTests:
     needs: [Build]
-    if: ${{ github.ref == 'refs/heads/dev' }} # dev branche is published to myget moryx
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
@@ -83,24 +98,60 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v2
         with:
-          name: test-results
+          name: moryx-core-test-results
           path: artifacts/Tests/
           retention-days: 1
 
-  Codecov:
+  ReportGenerator:
     needs: [UnitTests, IntegrationTests]
     runs-on: windows-2019
     steps:
       - name: Download test results
         uses: actions/download-artifact@v2
         with:
-          name: test-results
-          path: artifacts/Tests/
-
-      - name: Codecov
-        uses: codecov/codecov-action@v1
+          name: moryx-core-test-results
+          path: artifacts/moryx-core-test-results
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: artifacts/moryx-core-test-results
+          
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.1.12
         with:
-          files: '*.OpenCover.xml'
+          reports: artifacts/moryx-core-test-results/**/TestResults\**\coverage.cobertura.xml; artifacts/moryx-core-test-results/*.Cobertura.xml
+          targetdir: Coverage
+          reporttypes: Html
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: moryx-core-coverage-results
+          path: Coverage/
+          retention-days: 1
+          
+          
+  Release-Website:
+    needs: [ReportGenerator]
+    runs-on: ubuntu-latest
+    steps:        
+      - name: Download coverage results
+        uses: actions/download-artifact@v2
+        with:
+          name: moryx-core-coverage-results
+          path: artifacts/coverage-results
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Deploy static site to S3 bucket
+        run: aws s3 sync artifacts/coverage-results s3://moryx-code-coverage/moryx-core --delete
+
+
 
   Documentation:
     needs: [Build]
