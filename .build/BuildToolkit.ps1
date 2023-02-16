@@ -190,7 +190,7 @@ function Invoke-Build([string]$ProjectFile, [string]$Options = "") {
 
     Write-Step "Set NODE_OPTIONS";
 
-    & set NODE_OPTIONS=--openssl-legacy-provider;
+    $env:NODE_OPTIONS = "--openssl-legacy-provider";
 
     # TODO: maybe we find a better way: currently all packages of all solutions are restored.
     ForEach ($solution in (Get-ChildItem $RootPath -Filter "*.sln")) {
