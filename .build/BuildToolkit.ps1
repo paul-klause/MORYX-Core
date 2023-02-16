@@ -186,9 +186,11 @@ function Install-Tool([string]$PackageName, [string]$Version, [string]$TargetExe
 }
 
 function Invoke-Build([string]$ProjectFile, [string]$Options = "") {
-    Write-Step "Building $ProjectFile"
+    Write-Step "Building $ProjectFile";
 
-    & set NODE_OPTIONS=--openssl-legacy-provider
+    Write-Step "Set NODE_OPTIONS";
+
+    & set NODE_OPTIONS=--openssl-legacy-provider;
 
     # TODO: maybe we find a better way: currently all packages of all solutions are restored.
     ForEach ($solution in (Get-ChildItem $RootPath -Filter "*.sln")) {
