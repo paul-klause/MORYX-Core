@@ -64,6 +64,11 @@ jobs:
         with:
           dotnet-version: 6.x
 
+      - name: Setup Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Set OpenSSL Legacy for Node.js
         run: set NODE_OPTIONS=--openssl-legacy-provider
 
