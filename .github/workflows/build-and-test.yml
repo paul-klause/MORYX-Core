@@ -12,7 +12,6 @@ on:
     branches: 
       - dev
       - future
-      
 
 env:
   MORYX_OPTIMIZE_CODE: "false"
