@@ -61,6 +61,11 @@ jobs:
         with:
           dotnet-version: 6.x
 
+      - name: Setup Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       - name: Execute dotnet restore
         run: dotnet restore
 
