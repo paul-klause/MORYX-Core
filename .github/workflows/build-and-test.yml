@@ -23,41 +23,135 @@ env:
   REPOSITORY_NAME: ${{ github.event.repository.name }}
 
 jobs:
+  #Build:
+  #  uses: PHOENIXCONTACT/tools/.github/workflows/build-tool.yml@main
+  #  with:
+  #    MORYX_OPTIMIZE_CODE: "false"
+  #    MORYX_BUILD_CONFIG: "Release"
+  #    MORYX_BUILDNUMBER: ${{github.run_number}}
+  #    dotnet_sdk_version: '7.x'
+  #    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  #    REPOSITORY_NAME: ${{ github.event.repository.name }}
+  
   Build:
-    uses: paul-klause/tools/.github/workflows/build-tool.yml@main
-    with:
-      MORYX_OPTIMIZE_CODE: "false"
-      MORYX_BUILD_CONFIG: "Release"
-      MORYX_BUILDNUMBER: ${{github.run_number}}
-      dotnet_sdk_version: '7.x'
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-      REPOSITORY_NAME: ${{ github.event.repository.name }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup .NET SDK standard (7)
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 7.x
 
+      - name: Setup .NET SDK 6 for testing purposes
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
+
+      - name: Setup Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Clean
+        run: dotnet clean && dotnet nuget locals all --clear
+
+      - name: Execute dotnet restore
+        run: dotnet restore
+
+      - name: Execute dotnet build
+        run: dotnet build
+
+  #UnitTests:
+  #  needs: [Build]
+  #  uses: PHOENIXCONTACT/tools/.github/workflows/unittest-tool.yml@main
+  #  with:
+  #    MORYX_OPTIMIZE_CODE: "false"
+  #    MORYX_BUILD_CONFIG: "Release"
+  #    MORYX_BUILDNUMBER: ${{github.run_number}}
+  #    dotnet_sdk_version: '7.x'
+  #    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  #    REPOSITORY_NAME: ${{ github.event.repository.name }}
+  
   UnitTests:
     needs: [Build]
-    uses: paul-klause/tools/.github/workflows/unittest-tool.yml@main
-    with:
-      MORYX_OPTIMIZE_CODE: "false"
-      MORYX_BUILD_CONFIG: "Release"
-      MORYX_BUILDNUMBER: ${{github.run_number}}
-      dotnet_sdk_version: '7.x'
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-      REPOSITORY_NAME: ${{ github.event.repository.name }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+      
+      - name: Setup Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
 
+      - name: Execute dotnet test (needs coverlet.collector nuget)
+        run: dotnet test --filter FullyQualifiedName!~Integration --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-test-results
+          path: src\Tests\**\TestResults\**\coverage.cobertura.xml
+          retention-days: 1
+
+  #IntegrationTests:
+  #  needs: [Build]
+  #  uses: PHOENIXCONTACT/tools/.github/workflows/integrationtest-tool.yml@main
+  #  with:
+  #    MORYX_OPTIMIZE_CODE: "false"
+  #    MORYX_BUILD_CONFIG: "Release"
+  #    MORYX_BUILDNUMBER: ${{github.run_number}}
+  #    dotnet_sdk_version: '7.x'
+  #    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  #    REPOSITORY_NAME: ${{ github.event.repository.name }}
+  
+  
   IntegrationTests:
     needs: [Build]
-    uses: paul-klause/tools/.github/workflows/integrationtest-tool.yml@main
-    with:
-      MORYX_OPTIMIZE_CODE: "false"
-      MORYX_BUILD_CONFIG: "Release"
-      MORYX_BUILDNUMBER: ${{github.run_number}}
-      dotnet_sdk_version: '7.x'
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-      REPOSITORY_NAME: ${{ github.event.repository.name }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET SDK standard (7)
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 7.x
+
+      - name: Setup .NET SDK 6 for testing purposes
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x
+
+      - name: Setup Node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Clean
+        run: dotnet clean && dotnet nuget locals all --clear
+
+      - name: Execute dotnet restore
+        run: dotnet restore
+
+      - name: Execute dotnet build
+        run: dotnet build
+
+      - name: Execute dotnet test (needs coverlet.collector nuget)
+        run: dotnet test --filter FullyQualifiedName~Integration --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-test-results
+          path: src\Tests\**\TestResults\**\coverage.cobertura.xml
+          retention-days: 1
 
   ReportGenerator:
     needs: [UnitTests, IntegrationTests]
-    uses: paul-klause/tools/.github/workflows/reportgenerator-tool.yml@main
+    uses: PHOENIXCONTACT/tools/.github/workflows/reportgenerator-tool.yml@main
     with:
       MORYX_OPTIMIZE_CODE: "false"
       MORYX_BUILD_CONFIG: "Release"
@@ -65,6 +159,7 @@ jobs:
       dotnet_sdk_version: '7.x'
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
       REPOSITORY_NAME: ${{ github.event.repository.name }}
+  
                
   #Publish-Test-Coverage:
   #  needs: [ReportGenerator]
@@ -82,7 +177,7 @@ jobs:
 
   Documentation:
     needs: [UnitTests]
-    uses: paul-klause/tools/.github/workflows/documentation-tool.yml@main
+    uses: PHOENIXCONTACT/tools/.github/workflows/documentation-tool.yml@main
     with:
       MORYX_OPTIMIZE_CODE: "false"
       MORYX_BUILD_CONFIG: "Release"
